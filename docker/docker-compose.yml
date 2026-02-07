@@ -1,0 +1,25 @@
+name: alpha-steel-api
+services:
+  oracle:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: alpha-oracle
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: "alpha"
+      APP_USER: "alpha"
+      APP_USER_PASSWORD: "alpha"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "echo 'select 1 from dual;' | sqlplus -s system/alpha@localhost/XEPDB1 > /dev/null || exit 1",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+
+volumes:
+  oracle-data:
