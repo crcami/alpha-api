@@ -21,19 +21,22 @@ public class AuthService {
   JwtService jwtService;
 
   @Transactional
-  public void register(String email, String password) {
+  public AppUserEntity register(String name, String email, String password) {
     String normalizedEmail = email.trim().toLowerCase();
+    String normalizedName = name.trim();
 
     if (appUserRepository.findByEmail(normalizedEmail).isPresent()) {
       throw new ConflictException("Email already registered.");
     }
 
     AppUserEntity user = new AppUserEntity();
+    user.name = normalizedName;
     user.email = normalizedEmail;
     user.passwordHash = BcryptUtil.bcryptHash(password);
     user.roles = "USER";
 
     appUserRepository.persist(user);
+    return user;
   }
 
   public String login(String email, String password) {

@@ -27,6 +27,9 @@ public class AppUserEntity extends PanacheEntityBase {
   @GeneratedValue(generator = "SEQ_APP_USER")
   public Long id;
 
+  @Column(name = "NAME", nullable = false, length = 120)
+  public String name;
+
   @Username
   @Column(name = "EMAIL", nullable = false, length = 320)
   public String email;

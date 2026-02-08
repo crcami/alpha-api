@@ -12,6 +12,9 @@ release.properties
 .settings/
 bin/
 
+# Dependencies
+node_modules/
+**/node_modules/
 # IntelliJ
 .idea
 *.ipr

@@ -2,9 +2,11 @@ package com.alphasteel.alphaapi.security.resource;
 
 import com.alphasteel.alphaapi.security.dto.AuthLoginRequest;
 import com.alphasteel.alphaapi.security.dto.AuthRegisterRequest;
+import com.alphasteel.alphaapi.security.dto.AuthRegisterResponse;
 import com.alphasteel.alphaapi.security.dto.AuthTokenResponse;
 import com.alphasteel.alphaapi.security.dto.ForgotPasswordRequest;
 import com.alphasteel.alphaapi.security.dto.ResetPasswordRequest;
+import com.alphasteel.alphaapi.security.entity.AppUserEntity;
 import com.alphasteel.alphaapi.security.service.AuthService;
 import com.alphasteel.alphaapi.security.service.PasswordResetService;
 import jakarta.annotation.security.PermitAll;
@@ -35,8 +37,15 @@ public class AuthResource {
   @Path("/register")
   @PermitAll
   public Response register(@Valid AuthRegisterRequest request) {
-    authService.register(request.email(), request.password());
-    return Response.status(Response.Status.CREATED).build();
+    AppUserEntity user = authService.register(request.name(), request.email(), request.password());
+
+    AuthRegisterResponse payload = new AuthRegisterResponse(
+        user.id,
+        user.name,
+        user.email
+    );
+
+    return Response.status(Response.Status.CREATED).entity(payload).build();
   }
 
   @POST
