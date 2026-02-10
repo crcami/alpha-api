@@ -35,7 +35,7 @@ public class ProductionPlannerService {
 
     Map<Long, BigDecimal> stockByMaterial = new HashMap<>();
     for (RawMaterialEntity rm : rawMaterialService.listAll()) {
-      stockByMaterial.put(rm.id, rm.stockQuantity);
+      stockByMaterial.put(rm.id, rm.stockQty);
     }
 
     List<ProductionSuggestionItemResponse> items = new ArrayList<>();

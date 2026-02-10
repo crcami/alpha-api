@@ -5,14 +5,13 @@ import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 
-/** Composite key for product materials. */
 @Embeddable
 public class ProductMaterialId implements Serializable {
 
-  @Column(name = "PRODUCT_ID", nullable = false)
+  @Column(name = "product_id", nullable = false)
   public Long productId;
 
-  @Column(name = "RAW_MATERIAL_ID", nullable = false)
+  @Column(name = "raw_material_id", nullable = false)
   public Long rawMaterialId;
 
   public ProductMaterialId() {}

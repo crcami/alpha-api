@@ -14,24 +14,24 @@ import java.math.BigDecimal;
 /** Product entity. */
 @Entity
 @Table(
-    name = "PRODUCT",
-    uniqueConstraints = @UniqueConstraint(name = "UK_PRODUCT_CODE", columnNames = "CODE")
+    name = "product",
+    uniqueConstraints = @UniqueConstraint(name = "uk_product_code", columnNames = "code")
 )
 public class ProductEntity extends PanacheEntityBase {
 
   @Id
-  @SequenceGenerator(name = "SEQ_PRODUCT", sequenceName = "SEQ_PRODUCT", allocationSize = 1)
-  @GeneratedValue(generator = "SEQ_PRODUCT")
+  @SequenceGenerator(name = "seq_product", sequenceName = "seq_product", allocationSize = 1)
+  @GeneratedValue(generator = "seq_product")
   public Long id;
 
   @NotBlank
-  @Column(name = "CODE", nullable = false, length = 32)
+  @Column(name = "code", nullable = false, length = 32)
   public String code;
 
   @NotBlank
-  @Column(name = "NAME", nullable = false, length = 255)
+  @Column(name = "name", nullable = false, length = 255)
   public String name;
 
-  @Column(name = "VALUE", nullable = false, precision = 15, scale = 2)
+  @Column(name = "value", nullable = false, precision = 15, scale = 2)
   public BigDecimal value;
 }

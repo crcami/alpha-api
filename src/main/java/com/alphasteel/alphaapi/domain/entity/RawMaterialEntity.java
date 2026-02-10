@@ -1,37 +1,37 @@
 package com.alphasteel.alphaapi.domain.entity;
 
+import com.alphasteel.alphaapi.domain.UnitOfMeasure;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
+import org.hibernate.annotations.ColumnDefault;
 
-/** Raw material entity. */
 @Entity
-@Table(
-    name = "RAW_MATERIAL",
-    uniqueConstraints = @UniqueConstraint(name = "UK_RAW_MATERIAL_CODE", columnNames = "CODE")
-)
+@Table(name = "raw_material")
 public class RawMaterialEntity extends PanacheEntityBase {
 
   @Id
-  @SequenceGenerator(name = "SEQ_RAW_MATERIAL", sequenceName = "SEQ_RAW_MATERIAL", allocationSize = 1)
-  @GeneratedValue(generator = "SEQ_RAW_MATERIAL")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   public Long id;
 
-  @NotBlank
-  @Column(name = "CODE", nullable = false, length = 32)
+  @Column(name = "code", nullable = false, unique = true, length = 50)
   public String code;
 
-  @NotBlank
-  @Column(name = "NAME", nullable = false, length = 255)
+  @Column(name = "name", nullable = false, length = 255)
   public String name;
 
-  @Column(name = "STOCK_QTY", nullable = false, precision = 18, scale = 3)
-  public BigDecimal stockQuantity;
+  @Column(name = "stock_qty", nullable = false, precision = 18, scale = 3)
+  public BigDecimal stockQty;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "unit_of_measure", nullable = false, length = 8)
+  @ColumnDefault("'UN'")
+  public UnitOfMeasure unitOfMeasure = UnitOfMeasure.UN;
 }

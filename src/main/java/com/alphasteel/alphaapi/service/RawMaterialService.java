@@ -2,6 +2,7 @@ package com.alphasteel.alphaapi.service;
 
 import com.alphasteel.alphaapi.common.CodeGenerator;
 import com.alphasteel.alphaapi.domain.CodeType;
+import com.alphasteel.alphaapi.domain.UnitOfMeasure;
 import com.alphasteel.alphaapi.domain.dto.RawMaterialCreateRequest;
 import com.alphasteel.alphaapi.domain.dto.RawMaterialResponse;
 import com.alphasteel.alphaapi.domain.dto.RawMaterialUpdateRequest;
@@ -44,7 +45,9 @@ public class RawMaterialService {
     RawMaterialEntity entity = new RawMaterialEntity();
     entity.code = code;
     entity.name = request.name().trim();
-    entity.stockQuantity = request.stockQuantity();
+    entity.stockQty = request.stockQuantity();
+    entity.unitOfMeasure =
+        request.unitOfMeasure() != null ? request.unitOfMeasure() : UnitOfMeasure.UN;
 
     rawMaterialRepository.persist(entity);
     return toResponse(entity);
@@ -63,7 +66,10 @@ public class RawMaterialService {
 
     entity.code = code;
     entity.name = request.name().trim();
-    entity.stockQuantity = request.stockQuantity();
+    entity.stockQty = request.stockQuantity();
+    if (request.unitOfMeasure() != null) {
+      entity.unitOfMeasure = request.unitOfMeasure();
+    }
 
     return toResponse(entity);
   }
@@ -75,7 +81,12 @@ public class RawMaterialService {
   }
 
   public RawMaterialResponse toResponse(RawMaterialEntity entity) {
-    return new RawMaterialResponse(entity.id, entity.code, entity.name, entity.stockQuantity);
+    return new RawMaterialResponse(
+        entity.id,
+        entity.code,
+        entity.name,
+        entity.stockQty,
+        entity.unitOfMeasure);
   }
 
   private String resolveCode(String code, String name, CodeType type) {

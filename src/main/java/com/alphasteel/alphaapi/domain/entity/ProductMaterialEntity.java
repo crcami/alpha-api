@@ -11,9 +11,8 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 
-/** Product bill of materials item. */
 @Entity
-@Table(name = "PRODUCT_MATERIAL")
+@Table(name = "product_material")
 public class ProductMaterialEntity extends PanacheEntityBase {
 
   @EmbeddedId
@@ -21,14 +20,14 @@ public class ProductMaterialEntity extends PanacheEntityBase {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @MapsId("productId")
-  @JoinColumn(name = "PRODUCT_ID", nullable = false)
+  @JoinColumn(name = "product_id", nullable = false)
   public ProductEntity product;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @MapsId("rawMaterialId")
-  @JoinColumn(name = "RAW_MATERIAL_ID", nullable = false)
+  @JoinColumn(name = "raw_material_id", nullable = false)
   public RawMaterialEntity rawMaterial;
 
-  @Column(name = "QTY_REQUIRED", nullable = false, precision = 18, scale = 3)
+  @Column(name = "quantity_required", nullable = false, precision = 18, scale = 3)
   public BigDecimal quantityRequired;
 }

@@ -6,14 +6,13 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
-/** Stores code sequence by prefix/type. */
 @Entity
-@Table(name = "CODE_SERIES")
+@Table(name = "code_series")
 public class CodeSeriesEntity extends PanacheEntityBase {
 
   @EmbeddedId
   public CodeSeriesId id;
 
-  @Column(name = "NEXT_NUMBER", nullable = false)
+  @Column(name = "next_number", nullable = false)
   public long nextNumber;
 }
