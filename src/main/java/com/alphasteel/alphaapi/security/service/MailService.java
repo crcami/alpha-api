@@ -32,7 +32,7 @@ public class MailService {
     );
 
     mailer.send(mail)
-        .ifNoItem().after(Duration.ofSeconds(12)).fail()
+        .ifNoItem().after(Duration.ofSeconds(60)).fail()
         .subscribe().with(
             ignored -> LOG.infof("Password reset email sent to %s", toEmail),
             err -> LOG.errorf(err, "Failed to send password reset email to %s", toEmail)
