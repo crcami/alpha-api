@@ -10,8 +10,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 /** Handles password reset flow. */
 @ApplicationScoped
@@ -38,13 +40,23 @@ public class PasswordResetService {
   @ConfigProperty(name = "app.security.reset-token-ttl-minutes", defaultValue = "30")
   long tokenTtlMinutes;
 
-  @Transactional
   public void requestReset(String email) {
+    Optional<ResetEmailContext> ctx = createResetToken(email);
+
+    if (ctx.isEmpty()) {
+      return;
+    }
+
+    mailService.sendPasswordResetEmailAsync(ctx.get().toEmail(), ctx.get().resetLink());
+  }
+
+  @Transactional
+  Optional<ResetEmailContext> createResetToken(String email) {
     String normalizedEmail = email.trim().toLowerCase();
     AppUserEntity user = appUserRepository.findByEmail(normalizedEmail).orElse(null);
 
     if (user == null) {
-      return;
+      return Optional.empty();
     }
 
     String token = tokenGenerator.generateUrlSafeToken();
@@ -58,7 +70,7 @@ public class PasswordResetService {
     tokenRepository.persist(entity);
 
     String link = frontendBaseUrl + "/reset-password?token=" + token;
-    mailService.sendPasswordResetEmail(user.email, link);
+    return Optional.of(new ResetEmailContext(user.email, link));
   }
 
   @Transactional
@@ -72,4 +84,6 @@ public class PasswordResetService {
     entity.user.passwordHash = BcryptUtil.bcryptHash(newPassword);
     entity.usedAt = now;
   }
+
+  record ResetEmailContext(String toEmail, String resetLink) {}
 }

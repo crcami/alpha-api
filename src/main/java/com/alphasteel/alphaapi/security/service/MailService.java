@@ -1,26 +1,42 @@
 package com.alphasteel.alphaapi.security.service;
 
 import io.quarkus.mailer.Mail;
-import io.quarkus.mailer.Mailer;
+import io.quarkus.mailer.reactive.ReactiveMailer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 /** Sends application emails. */
 @ApplicationScoped
 public class MailService {
 
-  @Inject
-  Mailer mailer;
+  private static final Logger LOG = Logger.getLogger(MailService.class);
 
-  public void sendPasswordResetEmail(String toEmail, String resetLink) {
-    String htmlContent = buildPasswordResetEmailHtml(resetLink);
-    
+  @Inject
+  ReactiveMailer mailer;
+
+  public void sendPasswordResetEmailAsync(String toEmail, String resetLink) {
+    String safeLink = URLEncoder.encode(resetLink, StandardCharsets.UTF_8)
+        .replace("+", "%20");
+
+    String htmlContent = buildPasswordResetEmailHtml(safeLink);
+
     Mail mail = Mail.withHtml(
         toEmail,
         "Recuperação de Senha - Alpha Steel",
         htmlContent
     );
-    mailer.send(mail);
+
+    mailer.send(mail)
+        .ifNoItem().after(Duration.ofSeconds(12)).fail()
+        .subscribe().with(
+            ignored -> LOG.infof("Password reset email sent to %s", toEmail),
+            err -> LOG.errorf(err, "Failed to send password reset email to %s", toEmail)
+        );
   }
 
   private String buildPasswordResetEmailHtml(String resetLink) {
@@ -36,13 +52,11 @@ public class MailService {
                 <tr>
                     <td align="center" style="padding: 40px 0;">
                         <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <!-- Header -->
                             <tr>
                                 <td style="padding: 40px 40px 30px 40px; text-align: center; background-color: #6972ab; border-radius: 8px 8px 0 0;">
                                     <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">Alpha Steel</h1>
                                 </td>
                             </tr>
-                            <!-- Content -->
                             <tr>
                                 <td style="padding: 40px;">
                                     <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 24px;">Recuperação de Senha</h2>
@@ -52,7 +66,6 @@ public class MailService {
                                     <p style="margin: 0 0 30px 0; color: #666666; font-size: 16px; line-height: 24px;">
                                         Clique no botão abaixo para criar uma nova senha:
                                     </p>
-                                    <!-- Button -->
                                     <table role="presentation" style="margin: 0 auto;">
                                         <tr>
                                             <td style="border-radius: 5px; background-color: #6972ab;">
@@ -62,7 +75,6 @@ public class MailService {
                                             </td>
                                         </tr>
                                     </table>
-                                    <!-- Expiration Notice -->
                                     <p style="margin: 30px 0 0 0; color: #999999; font-size: 14px; line-height: 20px;">
                                         ⏱️ <strong>Este link expira em 30 minutos.</strong>
                                     </p>
@@ -71,7 +83,6 @@ public class MailService {
                                     </p>
                                 </td>
                             </tr>
-                            <!-- Footer -->
                             <tr>
                                 <td style="padding: 30px 40px; background-color: #f8f8f8; border-radius: 0 0 8px 8px; text-align: center;">
                                     <p style="margin: 0; color: #999999; font-size: 12px;">
