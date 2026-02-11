@@ -1,5 +1,17 @@
-*
-!target/*-runner
-!target/*-runner.jar
-!target/lib/*
-!target/quarkus-app/*
+# Build output
+target/
+
+# VCS / IDE
+.git/
+.idea/
+.vscode/
+
+# Node
+node_modules/
+**/node_modules/
+
+# Local env
+.env
+
+# OS junk
+.DS_Store
