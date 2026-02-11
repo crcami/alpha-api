@@ -57,13 +57,15 @@ public class ProductionPlannerService {
       BigDecimal itemTotal = product.value.multiply(BigDecimal.valueOf(maxQty));
       total = total.add(itemTotal);
 
+      String uomCode = product.unitOfMeasure != null ? product.unitOfMeasure.code : null;
       items.add(new ProductionSuggestionItemResponse(
           product.id,
           product.code,
           product.name,
           product.value,
           maxQty,
-          itemTotal
+          itemTotal,
+          uomCode
       ));
     }
 

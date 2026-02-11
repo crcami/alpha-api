@@ -36,7 +36,11 @@ public class MeResource {
   @RolesAllowed("USER")
   public Response me() {
     String email = securityIdentity.getPrincipal().getName();
-    return Response.ok(new MeResponse(email)).build();
+    
+    AppUserEntity user = appUserRepository.findByEmail(email)
+        .orElseThrow(() -> new NotFoundException("User not found."));
+    
+    return Response.ok(new MeResponse(user.name, user.email)).build();
   }
 
   @PUT
@@ -58,5 +62,5 @@ public class MeResource {
   }
 
   /** Profile response. */
-  public record MeResponse(String email) {}
+  public record MeResponse(String name, String email) {}
 }

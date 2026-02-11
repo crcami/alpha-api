@@ -5,6 +5,7 @@ import com.alphasteel.alphaapi.security.dto.AuthRegisterRequest;
 import com.alphasteel.alphaapi.security.dto.AuthRegisterResponse;
 import com.alphasteel.alphaapi.security.dto.AuthTokenResponse;
 import com.alphasteel.alphaapi.security.dto.ForgotPasswordRequest;
+import com.alphasteel.alphaapi.security.dto.RefreshTokenRequest;
 import com.alphasteel.alphaapi.security.dto.ResetPasswordRequest;
 import com.alphasteel.alphaapi.security.entity.AppUserEntity;
 import com.alphasteel.alphaapi.security.service.AuthService;
@@ -52,8 +53,14 @@ public class AuthResource {
   @Path("/login")
   @PermitAll
   public AuthTokenResponse login(@Valid AuthLoginRequest request) {
-    String token = authService.login(request.email(), request.password());
-    return new AuthTokenResponse("Bearer", token, 3600);
+    return authService.login(request.email(), request.password());
+  }
+
+  @POST
+  @Path("/refresh")
+  @PermitAll
+  public AuthTokenResponse refresh(@Valid RefreshTokenRequest request) {
+    return authService.refresh(request.refreshToken());
   }
 
   @POST

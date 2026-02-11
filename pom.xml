@@ -86,6 +86,12 @@
       <artifactId>quarkus-mailer</artifactId>
     </dependency>
 
+    <!-- Scheduler for cleanup jobs -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler</artifactId>
+    </dependency>
+
     <!-- Test -->
     <dependency>
       <groupId>io.quarkus</groupId>

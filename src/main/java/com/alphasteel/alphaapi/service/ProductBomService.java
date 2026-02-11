@@ -59,10 +59,13 @@ public class ProductBomService {
         entity.id = new ProductMaterialId(product.id, material.id);
         entity.product = product;
         entity.rawMaterial = material;
-        productMaterialRepository.persist(entity);
       }
 
       entity.quantityRequired = req.quantityRequired();
+      
+      if (!existing.contains(entity)) {
+        productMaterialRepository.persist(entity);
+      }
       keep.put(material.id, true);
     }
 

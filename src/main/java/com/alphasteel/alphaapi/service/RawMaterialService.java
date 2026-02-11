@@ -2,14 +2,15 @@ package com.alphasteel.alphaapi.service;
 
 import com.alphasteel.alphaapi.common.CodeGenerator;
 import com.alphasteel.alphaapi.domain.CodeType;
-import com.alphasteel.alphaapi.domain.UnitOfMeasure;
 import com.alphasteel.alphaapi.domain.dto.RawMaterialCreateRequest;
 import com.alphasteel.alphaapi.domain.dto.RawMaterialResponse;
 import com.alphasteel.alphaapi.domain.dto.RawMaterialUpdateRequest;
 import com.alphasteel.alphaapi.domain.entity.RawMaterialEntity;
 import com.alphasteel.alphaapi.exception.ConflictException;
 import com.alphasteel.alphaapi.exception.NotFoundException;
+import com.alphasteel.alphaapi.repository.ProductMaterialRepository;
 import com.alphasteel.alphaapi.repository.RawMaterialRepository;
+import com.alphasteel.alphaapi.repository.UnitOfMeasureRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -23,7 +24,13 @@ public class RawMaterialService {
   RawMaterialRepository rawMaterialRepository;
 
   @Inject
+  ProductMaterialRepository productMaterialRepository;
+
+  @Inject
   CodeGenerator codeGenerator;
+
+  @Inject
+  UnitOfMeasureRepository unitOfMeasureRepository;
 
   public List<RawMaterialEntity> listAll() {
     return rawMaterialRepository.listAll();
@@ -46,8 +53,11 @@ public class RawMaterialService {
     entity.code = code;
     entity.name = request.name().trim();
     entity.stockQty = request.stockQuantity();
-    entity.unitOfMeasure =
-        request.unitOfMeasure() != null ? request.unitOfMeasure() : UnitOfMeasure.UN;
+    
+    // Buscar UnitOfMeasure do banco ou usar padrão
+    String uomCode = request.unitOfMeasure() != null ? request.unitOfMeasure() : "UN";
+    entity.unitOfMeasure = unitOfMeasureRepository.findByCode(uomCode)
+        .orElseThrow(() -> new NotFoundException("Unit of measure not found: " + uomCode));
 
     rawMaterialRepository.persist(entity);
     return toResponse(entity);
@@ -67,8 +77,10 @@ public class RawMaterialService {
     entity.code = code;
     entity.name = request.name().trim();
     entity.stockQty = request.stockQuantity();
+    
     if (request.unitOfMeasure() != null) {
-      entity.unitOfMeasure = request.unitOfMeasure();
+      entity.unitOfMeasure = unitOfMeasureRepository.findByCode(request.unitOfMeasure())
+          .orElseThrow(() -> new NotFoundException("Unit of measure not found: " + request.unitOfMeasure()));
     }
 
     return toResponse(entity);
@@ -77,16 +89,18 @@ public class RawMaterialService {
   @Transactional
   public void delete(Long id) {
     RawMaterialEntity entity = getOrThrow(id);
+    productMaterialRepository.deleteByRawMaterialId(id);
     rawMaterialRepository.delete(entity);
   }
 
   public RawMaterialResponse toResponse(RawMaterialEntity entity) {
+    String uomCode = entity.unitOfMeasure != null ? entity.unitOfMeasure.code : null;
     return new RawMaterialResponse(
         entity.id,
         entity.code,
         entity.name,
         entity.stockQty,
-        entity.unitOfMeasure);
+        uomCode);
   }
 
   private String resolveCode(String code, String name, CodeType type) {

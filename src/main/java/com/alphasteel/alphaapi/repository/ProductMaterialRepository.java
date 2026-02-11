@@ -18,4 +18,8 @@ public class ProductMaterialRepository
   public long deleteByProductId(Long productId) {
     return delete("product.id", productId);
   }
+
+  public long deleteByRawMaterialId(Long rawMaterialId) {
+    return delete("rawMaterial.id", rawMaterialId);
+  }
 }

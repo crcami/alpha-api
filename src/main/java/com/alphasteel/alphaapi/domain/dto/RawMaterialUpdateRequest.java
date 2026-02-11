@@ -1,6 +1,5 @@
 package com.alphasteel.alphaapi.domain.dto;
 
-import com.alphasteel.alphaapi.domain.UnitOfMeasure;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -13,4 +12,4 @@ public record RawMaterialUpdateRequest(
     @NotNull(message = "update.request.stockQuantity.must.not.be.null")
         @PositiveOrZero(message = "update.request.stockQuantity.must.be.positive.or.zero")
         BigDecimal stockQuantity,
-    UnitOfMeasure unitOfMeasure) {}
+    String unitOfMeasure) {}

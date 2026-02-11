@@ -8,7 +8,9 @@ import com.alphasteel.alphaapi.domain.dto.ProductUpdateRequest;
 import com.alphasteel.alphaapi.domain.entity.ProductEntity;
 import com.alphasteel.alphaapi.exception.ConflictException;
 import com.alphasteel.alphaapi.exception.NotFoundException;
+import com.alphasteel.alphaapi.repository.ProductMaterialRepository;
 import com.alphasteel.alphaapi.repository.ProductRepository;
+import com.alphasteel.alphaapi.repository.UnitOfMeasureRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -22,7 +24,13 @@ public class ProductService {
   ProductRepository productRepository;
 
   @Inject
+  ProductMaterialRepository productMaterialRepository;
+
+  @Inject
   CodeGenerator codeGenerator;
+
+  @Inject
+  UnitOfMeasureRepository unitOfMeasureRepository;
 
   public List<ProductEntity> listAll() {
     return productRepository.listAll();
@@ -45,6 +53,11 @@ public class ProductService {
     entity.code = code;
     entity.name = request.name().trim();
     entity.value = request.value();
+    
+    // Buscar UnitOfMeasure do banco ou usar padrão
+    String uomCode = request.unitOfMeasure() != null ? request.unitOfMeasure() : "UN";
+    entity.unitOfMeasure = unitOfMeasureRepository.findByCode(uomCode)
+        .orElseThrow(() -> new NotFoundException("Unit of measure not found: " + uomCode));
 
     productRepository.persist(entity);
     return toResponse(entity);
@@ -64,6 +77,11 @@ public class ProductService {
     entity.code = code;
     entity.name = request.name().trim();
     entity.value = request.value();
+    
+    if (request.unitOfMeasure() != null) {
+      entity.unitOfMeasure = unitOfMeasureRepository.findByCode(request.unitOfMeasure())
+          .orElseThrow(() -> new NotFoundException("Unit of measure not found: " + request.unitOfMeasure()));
+    }
 
     return toResponse(entity);
   }
@@ -71,11 +89,13 @@ public class ProductService {
   @Transactional
   public void delete(Long id) {
     ProductEntity entity = getOrThrow(id);
+    productMaterialRepository.deleteByProductId(id);
     productRepository.delete(entity);
   }
 
   public ProductResponse toResponse(ProductEntity entity) {
-    return new ProductResponse(entity.id, entity.code, entity.name, entity.value);
+    String uomCode = entity.unitOfMeasure != null ? entity.unitOfMeasure.code : null;
+    return new ProductResponse(entity.id, entity.code, entity.name, entity.value, uomCode);
   }
 
   private String resolveCode(String code, String name, CodeType type) {

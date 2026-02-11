@@ -1,8 +1,9 @@
 package com.alphasteel.alphaapi.security.dto;
 
-/** Token response payload. */
+/** Token response with refresh token support. */
 public record AuthTokenResponse(
     String tokenType,
     String accessToken,
-    long expiresInSeconds
+    long expiresInSeconds,
+    String refreshToken
 ) {}
