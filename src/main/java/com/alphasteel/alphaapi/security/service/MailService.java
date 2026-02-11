@@ -2,12 +2,12 @@ package com.alphasteel.alphaapi.security.service;
 
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.reactive.ReactiveMailer;
+import io.vertx.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 /** Sends application emails. */
@@ -15,28 +15,79 @@ import java.time.Duration;
 public class MailService {
 
   private static final Logger LOG = Logger.getLogger(MailService.class);
+  private static final String SUBJECT = "Recuperação de Senha - Alpha Steel";
+
+  @ConfigProperty(name = "app.email.resend.api-key", defaultValue = "")
+  String resendApiKey;
+
+  @ConfigProperty(name = "app.email.resend.from", defaultValue = "")
+  String resendFrom;
+
+  @Inject
+  Vertx vertx;
+
+  @Inject
+  ResendClient resendClient;
 
   @Inject
   ReactiveMailer mailer;
 
   public void sendPasswordResetEmailAsync(String toEmail, String resetLink) {
-    String safeLink = URLEncoder.encode(resetLink, StandardCharsets.UTF_8)
-        .replace("+", "%20");
-
+    String safeLink = escapeHtmlAttribute(resetLink);
     String htmlContent = buildPasswordResetEmailHtml(safeLink);
 
-    Mail mail = Mail.withHtml(
-        toEmail,
-        "Recuperação de Senha - Alpha Steel",
-        htmlContent
-    );
+    if (!isBlank(resendApiKey) && !isBlank(resendFrom)) {
+      sendViaResendAsync(toEmail, htmlContent);
+      return;
+    }
 
-    mailer.send(mail)
+    sendViaSmtpAsync(toEmail, htmlContent);
+  }
+
+  private void sendViaResendAsync(String toEmail, String htmlContent) {
+    vertx.executeBlocking(() -> {
+      try {
+        String id = resendClient.sendHtmlEmail(
+            resendApiKey,
+            resendFrom,
+            toEmail,
+            SUBJECT,
+            htmlContent
+        );
+        LOG.infof("Password reset email sent via Resend. id=%s to=%s", id, toEmail);
+        return null; // Callable requires a return value
+      } catch (Exception e) {
+        LOG.errorf(e, "Failed to send password reset email via Resend to %s", toEmail);
+        throw e; // Rethrow to fail the blocking action
+      }
+    }, false);
+  }
+
+  private void sendViaSmtpAsync(String toEmail, String htmlContent) {
+    Mail mailObj = Mail.withHtml(toEmail, SUBJECT, htmlContent);
+
+    mailer.send(mailObj)
         .ifNoItem().after(Duration.ofSeconds(60)).fail()
         .subscribe().with(
-            ignored -> LOG.infof("Password reset email sent to %s", toEmail),
-            err -> LOG.errorf(err, "Failed to send password reset email to %s", toEmail)
+            ignored -> LOG.infof("Password reset email sent via SMTP to %s", toEmail),
+            err -> LOG.errorf(err, "Failed to send password reset email via SMTP to %s", toEmail)
         );
+  }
+
+  private boolean isBlank(String value) {
+    return value == null || value.trim().isEmpty();
+  }
+
+  private String escapeHtmlAttribute(String value) {
+    if (value == null) {
+      return "";
+    }
+    return value
+        .replace("&", "&amp;")
+        .replace("\"", "&quot;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("'", "&#39;");
   }
 
   private String buildPasswordResetEmailHtml(String resetLink) {
