@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: alpha-api
+    runtime: docker
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: FRONTEND_URL
+        value: "http://localhost:5173"
